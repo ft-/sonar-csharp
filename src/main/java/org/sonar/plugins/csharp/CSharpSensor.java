@@ -151,14 +151,31 @@ public class CSharpSensor implements Sensor {
 
     File executableFile = extractor.executableFile();
 
-    Command command = Command.create(executableFile.getAbsolutePath())
-      .addArgument(analysisInput.getAbsolutePath())
-      .addArgument(analysisOutput.getAbsolutePath());
+    if (System.getProperty("os.name").startsWith("Windows")) 
+    {
+        // includes: Windows 2000,  Windows 95, Windows 98, Windows NT, Windows Vista, Windows XP
+        Command command = Command.create(executableFile.getAbsolutePath())
+          .addArgument(analysisInput.getAbsolutePath())
+          .addArgument(analysisOutput.getAbsolutePath());
 
-    int exitCode = CommandExecutor.create().execute(command, new LogInfoStreamConsumer(), new LogErrorStreamConsumer(), Integer.MAX_VALUE);
-    if (exitCode != 0) {
-      throw new IllegalStateException("The .NET analyzer failed with exit code: " + exitCode + " - Verify that the .NET Framework version 4.5.2 at least is installed.");
-    }
+        int exitCode = CommandExecutor.create().execute(command, new LogInfoStreamConsumer(), new LogErrorStreamConsumer(), Integer.MAX_VALUE);
+        if (exitCode != 0) {
+          throw new IllegalStateException("The .NET analyzer failed with exit code: " + exitCode + " - Verify that the .NET Framework version 4.5.2 at least is installed.");
+        }
+    } 
+    else 
+    {
+        // everything else
+        Command command = Command.create("mono")
+          .addArgument(executableFile.getAbsolutePath())
+          .addArgument(analysisInput.getAbsolutePath())
+          .addArgument(analysisOutput.getAbsolutePath());
+
+        int exitCode = CommandExecutor.create().execute(command, new LogInfoStreamConsumer(), new LogErrorStreamConsumer(), Integer.MAX_VALUE);
+        if (exitCode != 0) {
+          throw new IllegalStateException("The .NET analyzer failed with exit code: " + exitCode + " - Verify that the .NET Framework version 4.5.2 at least is installed.");
+        }
+    }     
   }
 
   private static String escapeXml(String str) {
